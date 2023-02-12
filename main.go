@@ -1,9 +1,22 @@
 package main
 
-import "net/http"
+import "xgo/server"
+
+func Login(ctx server.Context) {
+	ctx.Response.Write([]byte("login"))
+}
+func Logout(ctx server.Context) {
+	ctx.Response.Write([]byte("logout"))
+}
 
 func main() {
-  http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-
-  })
+	s := server.HttpServer{
+		Port: 8083,
+		HandlerOnMap: server.HandlerOnMap{
+			HandlerMap: map[string]func(ctx server.Context){},
+		},
+	}
+	s.Route("POST", "/login", Login)
+	s.Route("POST", "/logout", Logout)
+	s.Start()
 }

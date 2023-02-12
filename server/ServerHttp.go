@@ -11,18 +11,22 @@ type httpHandler interface {
 	Start()
 }
 
-type httpServer struct {
+type SingUp func(ctx Context)
+
+type HttpServer struct {
 	Port int
+	HandlerOnMap
 }
 
 func main() {
 	fmt.Println(22)
 }
 
-func (h *httpServer) Route(path string, handlerFunc http.HandlerFunc) {
-	http.HandleFunc(path, handlerFunc)
+func (h *HttpServer) Route(method, path string, fn SingUp) {
+	key := h.HandlerOnMap.Key(method, path)
+	h.HandlerMap[key] = fn
 }
 
-func (h *httpServer) Start() {
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", h.Port), nil))
+func (h *HttpServer) Start() {
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", h.Port), h.HandlerOnMap))
 }
