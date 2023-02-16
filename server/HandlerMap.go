@@ -2,9 +2,20 @@ package server
 
 import "net/http"
 
+type RouteAble interface {
+	Route(method, path string, fn SingUp)
+}
+
+type Handler interface {
+	http.Handler
+	RouteAble
+}
+
 type HandlerOnMap struct {
 	HandlerMap map[string]func(ctx Context)
 }
+
+var _ Handler = HandlerOnMap{}
 
 func (h HandlerOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	key := h.Key(r.Method, r.URL.Path)
@@ -15,6 +26,11 @@ func (h HandlerOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("未匹配到方法"))
 	}
+}
+
+func (h HandlerOnMap) Route(method, path string, fn SingUp) {
+	key := h.Key(method, path)
+	h.HandlerMap[key] = fn
 }
 
 func (h *HandlerOnMap) Key(method, pattern string) string {

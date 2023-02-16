@@ -7,7 +7,7 @@ import (
 )
 
 type httpHandler interface {
-	Route(path string)
+	RouteAble
 	Start()
 }
 
@@ -15,18 +15,15 @@ type SingUp func(ctx Context)
 
 type HttpServer struct {
 	Port int
-	HandlerOnMap
+	Handler
 }
 
-func main() {
-	fmt.Println(22)
+var _ httpHandler = HttpServer{}
+
+func (h HttpServer) Route(method, path string, fn SingUp) {
+	h.Handler.Route(method, path, fn)
 }
 
-func (h *HttpServer) Route(method, path string, fn SingUp) {
-	key := h.HandlerOnMap.Key(method, path)
-	h.HandlerMap[key] = fn
-}
-
-func (h *HttpServer) Start() {
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", h.Port), h.HandlerOnMap))
+func (h HttpServer) Start() {
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", h.Port), h.Handler))
 }

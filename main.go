@@ -12,7 +12,7 @@ func Logout(ctx server.Context) {
 func main() {
 	s := server.HttpServer{
 		Port: 8083,
-		HandlerOnMap: server.HandlerOnMap{
+		Handler: server.HandlerOnMap{
 			HandlerMap: map[string]func(ctx server.Context){},
 		},
 	}
