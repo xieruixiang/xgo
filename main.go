@@ -10,12 +10,7 @@ func Logout(ctx server.Context) {
 }
 
 func main() {
-	s := server.HttpServer{
-		Port: 8083,
-		Handler: server.HandlerOnMap{
-			HandlerMap: map[string]func(ctx server.Context){},
-		},
-	}
+	s := server.NewServerHttp(8083)
 	s.Route("POST", "/login", Login)
 	s.Route("POST", "/logout", Logout)
 	s.Start()

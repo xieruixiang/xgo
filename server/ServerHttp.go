@@ -27,3 +27,12 @@ func (h HttpServer) Route(method, path string, fn SingUp) {
 func (h HttpServer) Start() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", h.Port), h.Handler))
 }
+
+func NewServerHttp(port int) HttpServer {
+	return HttpServer{
+		Port: 8083,
+		Handler: HandlerOnMap{
+			HandlerMap: map[string]func(ctx Context){},
+		},
+	}
+}
