@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -16,23 +15,37 @@ type SingUp func(ctx Context)
 type HttpServer struct {
 	Port int
 	Handler
+	Root SingUp
 }
-
-var _ httpHandler = HttpServer{}
 
 func (h HttpServer) Route(method, path string, fn SingUp) {
 	h.Handler.Route(method, path, fn)
 }
 
 func (h HttpServer) Start() {
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", h.Port), h.Handler))
+	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		context := NewContext(writer, request)
+		h.Root(context)
+	})
+	http.ListenAndServe(fmt.Sprintf(":%d", h.Port), nil)
 }
 
-func NewServerHttp(port int) HttpServer {
+var _ httpHandler = HttpServer{}
+
+func NewServerHttp(port int, filters ...FilterBuild) httpHandler {
+	handler := NewHandler()
+	root := func(ctx Context) {
+		handler.ServeHTTP(ctx.Response, ctx.Request)
+	}
+
+	for i := len(filters) - 1; i >= 0; i-- {
+		f := filters[i]
+		root = f(root)
+	}
+
 	return HttpServer{
-		Port: 8083,
-		Handler: HandlerOnMap{
-			HandlerMap: map[string]func(ctx Context){},
-		},
+		Port:    port,
+		Handler: handler,
+		Root:    root,
 	}
 }

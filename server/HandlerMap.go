@@ -1,6 +1,8 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type RouteAble interface {
 	Route(method, path string, fn SingUp)
@@ -15,9 +17,9 @@ type HandlerOnMap struct {
 	HandlerMap map[string]func(ctx Context)
 }
 
-var _ Handler = HandlerOnMap{}
+var _ Handler = &HandlerOnMap{}
 
-func (h HandlerOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	key := h.Key(r.Method, r.URL.Path)
 	if m, ok := h.HandlerMap[key]; ok {
 		context := NewContext(w, r)
@@ -28,11 +30,17 @@ func (h HandlerOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h HandlerOnMap) Route(method, path string, fn SingUp) {
+func (h *HandlerOnMap) Route(method, path string, fn SingUp) {
 	key := h.Key(method, path)
 	h.HandlerMap[key] = fn
 }
 
 func (h *HandlerOnMap) Key(method, pattern string) string {
 	return method + "#" + pattern
+}
+
+func NewHandler() Handler {
+	return &HandlerOnMap{
+		HandlerMap: map[string]func(ctx Context){},
+	}
 }
