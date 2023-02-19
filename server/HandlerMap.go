@@ -8,6 +8,9 @@ type RouteAble interface {
 	Route(method, path string, fn SingUp)
 }
 
+type RouteKey interface {
+}
+
 type Handler interface {
 	http.Handler
 	RouteAble
@@ -33,6 +36,10 @@ func (h *HandlerOnMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *HandlerOnMap) Route(method, path string, fn SingUp) {
 	key := h.Key(method, path)
 	h.HandlerMap[key] = fn
+}
+
+func (h *HandlerOnMap) GetAll() {
+
 }
 
 func (h *HandlerOnMap) Key(method, pattern string) string {

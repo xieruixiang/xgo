@@ -9,8 +9,13 @@ import (
 func Login(ctx server.Context) {
 	ctx.Response.Write([]byte("login"))
 }
+
 func Logout(ctx server.Context) {
 	ctx.Response.Write([]byte("logout"))
+}
+
+func LogoutAbc(ctx server.Context) {
+	ctx.Response.Write([]byte("logout-abc"))
 }
 
 func main() {
@@ -19,10 +24,11 @@ func main() {
 			start := time.Now().Nanosecond()
 			next(ctx)
 			end := time.Now().Nanosecond()
-			fmt.Printf("耗时纳秒:%d", end-start)
+			fmt.Printf("耗时纳秒:%d \n", end-start)
 		}
 	})
 	s.Route("POST", "/login", Login)
 	s.Route("POST", "/logout", Logout)
+	s.Route("POST", "/logout/gg/abc", LogoutAbc)
 	s.Start()
 }

@@ -33,7 +33,8 @@ func (h HttpServer) Start() {
 var _ httpHandler = HttpServer{}
 
 func NewServerHttp(port int, filters ...FilterBuild) httpHandler {
-	handler := NewHandler()
+	//handler := NewHandler()
+	handler := NewNodeHandler()
 	root := func(ctx Context) {
 		handler.ServeHTTP(ctx.Response, ctx.Request)
 	}
