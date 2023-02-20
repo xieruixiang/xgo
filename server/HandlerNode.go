@@ -7,38 +7,46 @@ import (
 )
 
 type NodeHandler interface {
-	Find(path []string) (*Node, []string)
-	Register(path []string, up SingUp)
+	Find(method string, path []string) (*Node, []string)
+	Register(method string, path []string, up SingUp)
 	GetPath() string
 }
 
 type Node struct {
-	Path  string
-	Up    SingUp
-	Nodes []*Node
+	Method string
+	Path   string
+	Up     SingUp
+	Nodes  []*Node
 }
 
-func (n *Node) Find(path []string) (*Node, []string) {
+func (n *Node) Find(method string, path []string) (*Node, []string) {
 	length := len(path)
 	if length < 1 {
+		if n.Method != method {
+			return nil, []string{}
+		}
 		return n, []string{}
 	}
 	for _, n := range n.Nodes {
 		if n.GetPath() == path[0] {
-			return n.Find(path[1:])
+			s, x := n.Find(method, path[1:])
+			if s != nil {
+				return s, x
+			}
 		}
 	}
 	return n, path
 }
 
-func (n *Node) Register(path []string, up SingUp) {
+func (n *Node) Register(method string, path []string, up SingUp) {
 	node := Node{
-		Path:  path[0],
-		Up:    nil,
-		Nodes: []*Node{},
+		Method: method,
+		Path:   path[0],
+		Up:     nil,
+		Nodes:  []*Node{},
 	}
 	if len(path[1:]) > 0 {
-		node.Register(path[1:], up)
+		node.Register(method, path[1:], up)
 	} else {
 		node.Up = up
 	}
@@ -68,7 +76,8 @@ var _ NodeHandler = &Node{}
 func (h HandlerNode) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(r.URL.Path, "/")
 	split := strings.Split(path, "/")
-	if m := h.Find(split); m != nil {
+	method := r.Method
+	if m := h.Find(method, split); m != nil {
 		context := NewContext(w, r)
 		m(context)
 	} else {
@@ -84,15 +93,18 @@ func (h *HandlerNode) GetAll() {
 func (h *HandlerNode) Route(method, path string, fn SingUp) {
 	path = strings.Trim(path, "/")
 	split := strings.Split(path, "/")
-	find, i := h.Node.Find(split)
+	find, i := h.Node.Find(method, split)
 	if len(i) > 0 {
-		find.Register(i, fn)
+		find.Register(method, i, fn)
 	}
 }
 
-func (h *HandlerNode) Find(paths []string) SingUp {
-	find, i := h.Node.Find(paths)
+func (h *HandlerNode) Find(method string, paths []string) SingUp {
+	find, i := h.Node.Find(method, paths)
 	if len(i) > 0 {
+		return nil
+	}
+	if find == nil {
 		return nil
 	}
 	return find.Up
